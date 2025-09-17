@@ -56,8 +56,33 @@ public class MapGenerator : MonoBehaviour
             }
         }
         
+        RebuildMesh();
+        var roomGen = GetComponent<RoomGenerator>();
+        if (roomGen != null)
+        {
+            roomGen.GenerateRooms();
+        }
+    }
+
+    public void RebuildMesh()
+    {
+        if (map == null) return;
+        var borderedMap = new int[width + borderSize * 2,  height + borderSize * 2];
+        for (int x = 0; x < borderedMap.GetLength(0); x++)
+        {
+            for (int y = 0; y < borderedMap.GetLength(1); y++)
+            {
+                if (x >= borderSize && x < width + borderSize && y >= borderSize && y < height + borderSize)
+                {
+                    borderedMap[x, y] = map[x -  borderSize, y - borderSize];
+                }
+                else
+                {
+                    borderedMap[x, y] = 1;
+                }
+            }
+        }
         var meshGen = GetComponent<MeshGenerator>();
-        // Provide a scalar field matching borderedMap dimensions
         float[,] values = BuildValuesField(map);
         float[,] borderedValues = new float[borderedMap.GetLength(0), borderedMap.GetLength(1)];
         for (int x = 0; x < borderedValues.GetLength(0); x++)
@@ -75,6 +100,8 @@ public class MapGenerator : MonoBehaviour
             }
         }
         meshGen.GenerateMesh(borderedMap, borderedValues, caveSquareSize);
+    }
+
     float[,] BuildValuesField(int[,] src)
     {
         int w = src.GetLength(0);
@@ -87,7 +114,6 @@ public class MapGenerator : MonoBehaviour
                 values[x, y] = src[x, y] == 1 ? 1f : 0f;
             }
         }
-        // Simple blur to give gradients for interpolation
         var blurred = new float[w, h];
         for (int x = 0; x < w; x++)
         {
@@ -111,6 +137,71 @@ public class MapGenerator : MonoBehaviour
         }
         return blurred;
     }
+
+    public bool CarveRectangle(int x, int y, int w, int h)
+    {
+        bool changed = false;
+        int x0 = Mathf.Clamp(x, 0, width - 1);
+        int y0 = Mathf.Clamp(y, 0, height - 1);
+        int x1 = Mathf.Clamp(x + w - 1, 0, width - 1);
+        int y1 = Mathf.Clamp(y + h - 1, 0, height - 1);
+        for (int ix = x0; ix <= x1; ix++)
+        {
+            for (int iy = y0; iy <= y1; iy++)
+            {
+                if (map[ix, iy] != 0)
+                {
+                    map[ix, iy] = 0;
+                    changed = true;
+                }
+            }
+        }
+        return changed;
+    }
+
+    public void CarveCorridor(Vector2Int from, Vector2Int to, int radius, int mergeThreshold = 2)
+    {
+        var line = GetLine(new Coord(from.x, from.y), new Coord(to.x, to.y));
+        foreach (var c in line)
+        {
+            DrawCircle(c, radius);
+            if (TryFindNearestOpen(c, mergeThreshold, out var near))
+            {
+                var bridge = GetLine(c, near);
+                foreach (var bc in bridge)
+                {
+                    DrawCircle(bc, Mathf.Max(1, radius - 1));
+                }
+            }
+        }
+    }
+
+    bool TryFindNearestOpen(Coord c, int maxDist, out Coord nearest)
+    {
+        for (int r = 1; r <= maxDist; r++)
+        {
+            for (int dx = -r; dx <= r; dx++)
+            {
+                int dy1 = r - Mathf.Abs(dx);
+                int dy2 = -dy1;
+                int x1 = c.tileX + dx;
+                int y1 = c.tileY + dy1;
+                int x2 = c.tileX + dx;
+                int y2 = c.tileY + dy2;
+                if (IsInMapRange(x1, y1) && map[x1, y1] == 0)
+                {
+                    nearest = new Coord(x1, y1);
+                    return true;
+                }
+                if (IsInMapRange(x2, y2) && map[x2, y2] == 0)
+                {
+                    nearest = new Coord(x2, y2);
+                    return true;
+                }
+            }
+        }
+        nearest = c;
+        return false;
     }
 
     void ProcessMap()
@@ -489,7 +580,7 @@ public class MapGenerator : MonoBehaviour
         return wallCount;
     }
 
-    struct Coord
+    public struct Coord
     {
         public int tileX;
         public int tileY;
