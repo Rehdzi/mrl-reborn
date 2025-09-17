@@ -491,7 +491,7 @@ Transform:
   m_GameObject: {fileID: 1377770749}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -507,6 +507,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1714171073}
   - component: {fileID: 1714171072}
+  - component: {fileID: 1714171075}
   - component: {fileID: 1714171074}
   m_Layer: 0
   m_Name: MapGenerator
@@ -532,7 +533,7 @@ MonoBehaviour:
   seed: 674528184sdfh
   useRandomSeed: 1
   randomFillPercent: 51
-  smoothIterations: 5
+  smoothIterations: 8
   borderSize: 1
   passageRadius: 2
   caveSquareSize: 1
@@ -571,6 +572,32 @@ MonoBehaviour:
   is2D: 0
   wallHeight: 5
   tilingSize: 10
+  wallTilingSize: 2
+  createFloor: 1
+  floorYOffset: 0
+  floorMaterial: {fileID: 2100000, guid: 04b57970368181e4f81aeae35354d6ce, type: 2}
+  floorCollider: 1
+  floorTilingSize: 10
+--- !u!114 &1714171075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1714171071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e023562f227144668c277a563e47995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomGenerator
+  roomsCount: 8
+  roomSizeMin: {x: 7, y: 7}
+  roomSizeMax: {x: 15, y: 15}
+  placementAttempts: 40
+  corridorRadius: 2
+  mergeThreshold: 4
+  roomHeight: 5
+  placeholderMaterial: {fileID: 2100000, guid: b0e03b6478636441ba435037b93f7724, type: 2}
 --- !u!1 &1823688464
 GameObject:
   m_ObjectHideFlags: 0
@@ -657,13 +684,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1823688464}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.30031574, y: -0, z: -0, w: 0.9538399}
-  m_LocalPosition: {x: 0, y: 11.66, z: -10}
+  m_LocalRotation: {x: 0.13006677, y: -0.8597396, z: 0.27068898, w: 0.41310766}
+  m_LocalPosition: {x: 86.62, y: 59.62, z: 55.03}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 34.953, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 34.953, y: -128.671, z: 0}
 --- !u!114 &1823688468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -886,7 +913,7 @@ Transform:
   m_GameObject: {fileID: 1911095183}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -8,6 +8,13 @@ public class MeshGenerator : MonoBehaviour
     [SerializeField] public bool is2D;
     [SerializeField] public float wallHeight = 5f;
     [SerializeField] public int tilingSize = 10;
+    [SerializeField] public int wallTilingSize = 5;
+    [Header("Floor")]
+    [SerializeField] public bool createFloor = true;
+    [SerializeField] public float floorYOffset = 0f;
+    [SerializeField] public Material floorMaterial;
+    [SerializeField] public bool floorCollider = false;
+    [SerializeField] public int floorTilingSize = 10;
 
     public SquareGrid squareGrid;
     
@@ -53,10 +60,10 @@ public class MeshGenerator : MonoBehaviour
         {
             float percentX = Mathf.InverseLerp(-map.GetLength(0)*squareSize, 
                 map.GetLength(0)*squareSize, 
-                vertices[i].x) * tilingSize;
+                vertices[i].x) * floorTilingSize;
             float percentY = Mathf.InverseLerp(-map.GetLength(0)*squareSize, 
                 map.GetLength(0)*squareSize, 
-                vertices[i].z)  * tilingSize;
+                vertices[i].z)  * floorTilingSize;
             
             uvs.Add(new Vector2(percentX, percentY));
         }
@@ -67,6 +74,48 @@ public class MeshGenerator : MonoBehaviour
         if (!is2D)
         {
             CreateWallMesh();
+        }
+
+        // Create or update floor plane sized to the generated cave bounds
+        if (createFloor)
+        {
+            float mapW = map.GetLength(0) * squareSize;
+            float mapH = map.GetLength(1) * squareSize;
+            CreateOrUpdateFloor(mapW, mapH);
+        }
+    }
+
+    void CreateOrUpdateFloor(float width, float height)
+    {
+        const string floorName = "CaveFloor";
+        Transform t = transform.Find(floorName);
+        GameObject go;
+        if (t == null)
+        {
+            go = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            go.name = floorName;
+            go.transform.SetParent(transform, false);
+        }
+        else
+        {
+            go = t.gameObject;
+        }
+
+        // Unity Plane is 10x10 units
+        go.transform.localScale = new Vector3(Mathf.Max(0.001f, width / 10f), 1f, Mathf.Max(0.001f, height / 10f));
+        go.transform.localPosition = new Vector3(0f, floorYOffset, 0f);
+        go.transform.localRotation = Quaternion.identity;
+
+        var mr = go.GetComponent<MeshRenderer>();
+        if (mr != null && floorMaterial != null)
+        {
+            mr.sharedMaterial = floorMaterial;
+        }
+
+        var collider = go.GetComponent<Collider>();
+        if (collider != null)
+        {
+            collider.enabled = floorCollider;
         }
     }
 
@@ -91,33 +140,55 @@ public class MeshGenerator : MonoBehaviour
             {
                 Vector3 topLeftPos = vertices[outline[x]];
                 Vector3 topRightPos = vertices[outline[x+1]];
+                
                 Vector3 bottomLeftPos = topLeftPos - Vector3.up * wallHeight;
                 Vector3 bottomRightPos = topRightPos - Vector3.up * wallHeight;
+                Vector3 midLeftPos = topLeftPos - Vector3.up * (wallHeight * 0.5f);
+                Vector3 midRightPos = topRightPos - Vector3.up * (wallHeight * 0.5f);
 
                 float segmentLength = Vector3.Distance(topLeftPos, topRightPos);
-                float uNext = uAccumulated + segmentLength * tilingSize;
+                float uNext = uAccumulated + segmentLength * wallTilingSize;
                 float vTop = 0f;
-                float vBottom = wallHeight * tilingSize;
+                float vMid = (wallHeight * 0.5f) * wallTilingSize;
+                float vBottom = wallHeight * wallTilingSize;
 
-                // Add vertices for this quad
-                int baseIndex = outlineVertices.Count;
+                // Upper quad (top -> mid)
+                int baseIndexUpper = outlineVertices.Count;
                 outlineVertices.Add(topLeftPos);
                 outlineVertices.Add(topRightPos);
+                outlineVertices.Add(midLeftPos);
+                outlineVertices.Add(midRightPos);
+
+                outlineTriangles.Add(baseIndexUpper + 0); // topLeft
+                outlineTriangles.Add(baseIndexUpper + 2); // midLeft
+                outlineTriangles.Add(baseIndexUpper + 1); // topRight
+
+                outlineTriangles.Add(baseIndexUpper + 1); // topRight
+                outlineTriangles.Add(baseIndexUpper + 2); // midLeft
+                outlineTriangles.Add(baseIndexUpper + 3); // midRight
+
+                outlineUVs.Add(new Vector2(uAccumulated, vTop));
+                outlineUVs.Add(new Vector2(uNext, vTop));
+                outlineUVs.Add(new Vector2(uAccumulated, vMid));
+                outlineUVs.Add(new Vector2(uNext, vMid));
+
+                // Lower quad (mid -> bottom)
+                int baseIndexLower = outlineVertices.Count;
+                outlineVertices.Add(midLeftPos);
+                outlineVertices.Add(midRightPos);
                 outlineVertices.Add(bottomLeftPos);
                 outlineVertices.Add(bottomRightPos);
 
-                // Add triangles (clockwise winding for outward-facing normals)
-                outlineTriangles.Add(baseIndex + 0); // topLeft
-                outlineTriangles.Add(baseIndex + 2); // bottomLeft
-                outlineTriangles.Add(baseIndex + 1); // topRight
+                outlineTriangles.Add(baseIndexLower + 0); // midLeft
+                outlineTriangles.Add(baseIndexLower + 2); // bottomLeft
+                outlineTriangles.Add(baseIndexLower + 1); // midRight
 
-                outlineTriangles.Add(baseIndex + 1); // topRight
-                outlineTriangles.Add(baseIndex + 2); // bottomLeft
-                outlineTriangles.Add(baseIndex + 3); // bottomRight
+                outlineTriangles.Add(baseIndexLower + 1); // midRight
+                outlineTriangles.Add(baseIndexLower + 2); // bottomLeft
+                outlineTriangles.Add(baseIndexLower + 3); // bottomRight
 
-                // Add UVs
-                outlineUVs.Add(new Vector2(uAccumulated, vTop));
-                outlineUVs.Add(new Vector2(uNext, vTop));
+                outlineUVs.Add(new Vector2(uAccumulated, vMid));
+                outlineUVs.Add(new Vector2(uNext, vMid));
                 outlineUVs.Add(new Vector2(uAccumulated, vBottom));
                 outlineUVs.Add(new Vector2(uNext, vBottom));
 
