@@ -70,29 +70,32 @@ public class RTSCameraController : MonoBehaviour {
 
             if (Input.GetKey(KeyCode.W) || Input.mousePosition.y >= Screen.height - ScreenEdgeBorderThickness)
             {
-                panMovement += Vector3.forward * panSpeed * Time.deltaTime;
+                panMovement += (Vector3.forward + Vector3.right) * panSpeed * Time.deltaTime;
             }
             if (Input.GetKey(KeyCode.S) || Input.mousePosition.y <= ScreenEdgeBorderThickness)
             {
-                panMovement -= Vector3.forward * panSpeed * Time.deltaTime;
+                panMovement -= (Vector3.forward - Vector3.left) * panSpeed * Time.deltaTime;
             }
             if (Input.GetKey(KeyCode.A) || Input.mousePosition.x <= ScreenEdgeBorderThickness)
             {
-                panMovement += Vector3.left * panSpeed * Time.deltaTime;
+                panMovement += (Vector3.left + Vector3.forward) * panSpeed * Time.deltaTime;
             }
             if (Input.GetKey(KeyCode.D) || Input.mousePosition.x >= Screen.width - ScreenEdgeBorderThickness)
             {
-                panMovement += Vector3.right * panSpeed * Time.deltaTime;
+                panMovement += (Vector3.right - Vector3.forward) * panSpeed * Time.deltaTime;
                 //pos.x += panSpeed * Time.deltaTime;
             }
-            if (Input.GetKey(KeyCode.Q))
-            {
-                panMovement += Vector3.up * panSpeed * Time.deltaTime;
-            }
-            if (Input.GetKey(KeyCode.E))
-            {
-                panMovement += Vector3.down * panSpeed * Time.deltaTime;
-            }
+            
+            //Up and Down movement. No need anyway.
+            
+            // if (Input.GetKey(KeyCode.Q))
+            // {
+            //     panMovement += Vector3.up * panSpeed * Time.deltaTime;
+            // }
+            // if (Input.GetKey(KeyCode.E))
+            // {
+            //     panMovement += Vector3.down * panSpeed * Time.deltaTime;
+            // }
 
             if(RTSMode) transform.Translate(panMovement, Space.World);
             else if(FlyCameraMode) transform.Translate(panMovement, Space.Self);
