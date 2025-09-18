@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Camera))]
 
@@ -31,17 +32,17 @@ public class RTSCameraController : MonoBehaviour {
     private Vector3 panMovement;
     private Vector3 pos;
     private Quaternion rot;
-    private bool rotationActive = false;
+    private bool rotationActive;
     private Vector3 lastMousePosition;
     private Quaternion initialRot;
     private float panIncrease = 0.0f;
-
+    
     [Header("Rotation")]
     [Space]
     public bool rotationEnabled;
     public float rotateSpeed;
 
-
+    private InputActionMap cameraMap;
 
 
 
@@ -51,7 +52,9 @@ public class RTSCameraController : MonoBehaviour {
         initialRot = transform.rotation;
         zoomLimit.x = 15;
         zoomLimit.y = 65;
-	}
+
+        cameraMap = InputSystem.actions.FindActionMap("Camera");
+    }
 	
 	
 	void Update () {
@@ -68,19 +71,19 @@ public class RTSCameraController : MonoBehaviour {
 
             panMovement = Vector3.zero;
 
-            if (Input.GetKey(KeyCode.W) || Input.mousePosition.y >= Screen.height - ScreenEdgeBorderThickness)
+            if (cameraMap.FindAction("Camera Forward").IsPressed() || Input.mousePosition.y >= Screen.height - ScreenEdgeBorderThickness)
             {
                 panMovement += (Vector3.forward + Vector3.right) * panSpeed * Time.deltaTime;
             }
-            if (Input.GetKey(KeyCode.S) || Input.mousePosition.y <= ScreenEdgeBorderThickness)
+            if (cameraMap.FindAction("Camera Backward").IsPressed() || Input.mousePosition.y <= ScreenEdgeBorderThickness)
             {
                 panMovement -= (Vector3.forward - Vector3.left) * panSpeed * Time.deltaTime;
             }
-            if (Input.GetKey(KeyCode.A) || Input.mousePosition.x <= ScreenEdgeBorderThickness)
+            if (cameraMap.FindAction("Camera Left").IsPressed() || Input.mousePosition.x <= ScreenEdgeBorderThickness)
             {
                 panMovement += (Vector3.left + Vector3.forward) * panSpeed * Time.deltaTime;
             }
-            if (Input.GetKey(KeyCode.D) || Input.mousePosition.x >= Screen.width - ScreenEdgeBorderThickness)
+            if (cameraMap.FindAction("Camera Right").IsPressed() || Input.mousePosition.x >= Screen.width - ScreenEdgeBorderThickness)
             {
                 panMovement += (Vector3.right - Vector3.forward) * panSpeed * Time.deltaTime;
                 //pos.x += panSpeed * Time.deltaTime;
@@ -102,9 +105,11 @@ public class RTSCameraController : MonoBehaviour {
 
 
         //increase pan speed
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) 
-            || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)
-            || Input.GetKey(KeyCode.E) || Input.GetKey(KeyCode.Q)
+        if (cameraMap.FindAction("Camera Forward").IsPressed() 
+            || cameraMap.FindAction("Camera Backward").IsPressed() 
+            || cameraMap.FindAction("Camera Left").IsPressed() 
+            || cameraMap.FindAction("Camera Right").IsPressed()
+            // || Input.GetKey(KeyCode.E) || Input.GetKey(KeyCode.Q)
             || Input.mousePosition.y >= Screen.height - ScreenEdgeBorderThickness
             || Input.mousePosition.y <= ScreenEdgeBorderThickness
             || Input.mousePosition.x <= ScreenEdgeBorderThickness
