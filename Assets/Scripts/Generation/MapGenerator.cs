@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Generation;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
@@ -18,15 +19,17 @@ public class MapGenerator : MonoBehaviour
     [SerializeField, Min(0)] public int passageRadius = 1;
     [SerializeField, Min(0.01f)] public float caveSquareSize = 1f;
     [SerializeField, Range(0f, 1f)] public float interpolationThreshold = 0.5f;
+
+    public BiomeData biome;
     
     private int[,] map;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        GenerateMap();
-    }
-
+    // void Start()
+    // {
+    //     GenerateMap();
+    // }
+    
     public void GenerateMap()
     {
         map =  new int[width, height];
@@ -591,7 +594,8 @@ public class MapGenerator : MonoBehaviour
             tileY = y;
         }
     }
-
+    
+    
     class Room : IComparable<Room>
     {
         public List<Coord> tiles;
@@ -668,6 +672,7 @@ public class MapGenerator : MonoBehaviour
             return otherRoom.roomSize.CompareTo(roomSize);
         }
     }
+    
     
     // void OnDrawGizmos()
     // {
