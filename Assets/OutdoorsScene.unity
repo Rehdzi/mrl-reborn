@@ -408,6 +408,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &760078647
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 760078649}
+  - component: {fileID: 760078648}
+  m_Layer: 0
+  m_Name: SessionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &760078648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760078647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e82f86f4bf46d4369adf4da8e3074b66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SessionManager
+  levelPrefab: {fileID: 1714171071}
+--- !u!4 &760078649
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760078647}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1377770749
 GameObject:
   m_ObjectHideFlags: 0
@@ -506,7 +551,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1714171073}
-  - component: {fileID: 1714171072}
+  - component: {fileID: 1714171076}
   - component: {fileID: 1714171075}
   - component: {fileID: 1714171074}
   m_Layer: 0
@@ -516,28 +561,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1714171072
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1714171071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0575321bccd67214f8acef62de774ccd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MapGenerator
-  width: 128
-  height: 72
-  seed: 674528184sdfh
-  useRandomSeed: 1
-  randomFillPercent: 51
-  smoothIterations: 8
-  borderSize: 1
-  passageRadius: 2
-  caveSquareSize: 1
-  interpolationThreshold: 0.5
 --- !u!4 &1714171073
 Transform:
   m_ObjectHideFlags: 0
@@ -598,6 +621,32 @@ MonoBehaviour:
   mergeThreshold: 4
   roomHeight: 5
   placeholderMaterial: {fileID: 2100000, guid: b0e03b6478636441ba435037b93f7724, type: 2}
+--- !u!114 &1714171076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1714171071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f498c14bdf589463f92cf75a52bcf736, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Level
+  width: 100
+  height: 100
+  seed: 
+  useRandomSeed: 1
+  randomFillPercent: 51
+  smoothIterations: 5
+  borderSize: 1
+  passageRadius: 2
+  caveSquareSize: 2
+  interpolationThreshold: 0.5
+  biome: {fileID: 0}
+  num: 1
+  difficulty: 1
+  mapBiome: {fileID: 0}
 --- !u!1 &1823688464
 GameObject:
   m_ObjectHideFlags: 0
@@ -1003,3 +1052,4 @@ SceneRoots:
   - {fileID: 432432461}
   - {fileID: 1714171073}
   - {fileID: 2013410475}
+  - {fileID: 760078649}

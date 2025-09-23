@@ -4,7 +4,7 @@ using static MapGenerator;
 
 
 
-public class Level : MonoBehaviour
+public class Level : MapGenerator
 {
 
     public int num = 1;
