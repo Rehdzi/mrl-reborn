@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class SessionManager : MonoBehaviour
 {
@@ -7,7 +8,12 @@ public class SessionManager : MonoBehaviour
     
     public GameObject levelPrefab;
 
+    public int level;
+    public float globalDifficulty = 1.0f;
+
     public static SessionManager instance { get; set; }
+
+    private InputActionMap debugMap;
     
     private void Awake()
     {
@@ -23,19 +29,38 @@ public class SessionManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        StartCoroutine(GenerateLevel(_defaultTime));
+        NewLevel();
+        
+        debugMap = InputSystem.actions.FindActionMap("Debug");
     }
 
     IEnumerator GenerateLevel(float time)
     {
+        var levelPrefab = GetComponent<Level>();
+        
         yield return new WaitForSeconds(time);
-        levelPrefab.GetComponent<Level>().GenerateMap();
+        levelPrefab.GenerateMap();
+        levelPrefab.GenerateLocalDifficulty();
 
     }
+
+    void NewLevel()
+    {
+        level++;
+        globalDifficulty += 0.1f;
+        StartCoroutine(GenerateLevel(_defaultTime));
+        // Other new level logics
+        
+        
+    }
+        
     
     // Update is called once per frame
     void Update()
     {
-        
+        if (debugMap.FindAction("New level").WasReleasedThisFrame())
+        {
+            NewLevel();
+        }
     }
 }

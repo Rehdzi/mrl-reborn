@@ -649,6 +649,34 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Debug",
+            "id": "c980fee4-94f4-45a7-8a28-df2b33fd9452",
+            "actions": [
+                {
+                    "name": "New level",
+                    "type": "Button",
+                    "id": "ba5aab4f-39fc-4a1a-b794-57b6dbb772f1",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "00d787e9-91cc-4131-8b00-692ba1d8cb0c",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "New level",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [

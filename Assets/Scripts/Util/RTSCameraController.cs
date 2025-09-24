@@ -174,8 +174,7 @@ public class RTSCameraController : MonoBehaviour {
 
 
         #endregion
-
-
+        
         #region boundaries
 
         if (enableMovementLimits == true)

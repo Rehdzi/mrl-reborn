@@ -6,10 +6,15 @@ using static MapGenerator;
 
 public class Level : MapGenerator
 {
+    
+    public float localDifficulty = 1.0f;
 
-    public int num = 1;
-    public float difficulty = 1.0f;
-    public BiomeData mapBiome;
+    public void GenerateLocalDifficulty()
+    {
+        float global = SessionManager.instance.globalDifficulty;
+        
+        localDifficulty += global + (Random.Range(1.0f, 5.0f) / 10);
+    }
     
     void Start()
     {
