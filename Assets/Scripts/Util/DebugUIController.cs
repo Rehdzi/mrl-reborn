@@ -5,33 +5,31 @@ namespace Util
 {
     public class DebugUIController : MonoBehaviour
     {
-    
+        
+        public GameObject session;
+        
+        [Header("Level Panel")]
         public TextMeshProUGUI levelText;
         public TextMeshProUGUI globalDiffText;
         public TextMeshProUGUI localDiffText;
         
-        public GameObject session;
-    
         int lastLevel = int.MinValue;
         float lastGlobalDiff = float.MinValue;
         float lastLocalDiff = float.MinValue;
-    
-        
         
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            SessionManager manager = session != null ? session.GetComponent<SessionManager>() : null;
             
-            if (manager != null)
+            if (SessionManager.instance != null)
             {
-                lastLevel = manager.level;
+                lastLevel = SessionManager.instance.level;
                 levelText.text += lastLevel;
 
-                lastGlobalDiff = manager.globalDifficulty;
+                lastGlobalDiff = SessionManager.instance.globalDifficulty;
                 globalDiffText.text += lastGlobalDiff;
                 
-                lastLocalDiff = manager.localDifficulty;
+                lastLocalDiff = SessionManager.instance.localDifficulty;
                 localDiffText.text += lastLocalDiff;
 
                 //UIUtilFunctions.AssignNewValue(levelText, _lastLevel,  manager.level);
@@ -42,10 +40,10 @@ namespace Util
         void Update()
         {
 
-            var manager = session != null ? session.GetComponent<SessionManager>() : null;
-            var currentLevel = manager.level;
-            var currentGlobalDiff = manager.globalDifficulty;
-            var currentLocalDiff = manager.localDifficulty;
+            //var manager = session != null ? session.GetComponent<SessionManager>() : null;
+            var currentLevel = SessionManager.instance.level;
+            var currentGlobalDiff = SessionManager.instance.globalDifficulty;
+            var currentLocalDiff = SessionManager.instance.localDifficulty;
             if (currentLevel != lastLevel)
             {
                 lastLevel = currentLevel;
