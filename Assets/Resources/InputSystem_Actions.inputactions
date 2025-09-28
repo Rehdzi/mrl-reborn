@@ -662,6 +662,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Enter Debug",
+                    "type": "Button",
+                    "id": "9c3207c2-adc4-4dd4-9ea4-d9955bb2655f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -673,6 +682,17 @@
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "New level",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9ccf0f71-4373-4ab4-a370-4fc5c726f6a3",
+                    "path": "<Keyboard>/f11",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "Enter Debug",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

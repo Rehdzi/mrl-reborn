@@ -16,6 +16,11 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private int currentLevelDepth = 1;
     [SerializeField] private bool autoIncrementDepth = true;
 
+    
+    [Header("Debug")]
+    [SerializeField] public GameObject debugPanel;
+    [SerializeField] public bool isDebug = false;
+    
     public static SessionManager instance { get; set; }
 
     private InputActionMap debugMap;
@@ -43,6 +48,7 @@ public class SessionManager : MonoBehaviour
         NewLevel();
         
         debugMap = InputSystem.actions.FindActionMap("Debug");
+        debugPanel.SetActive(false);
     }
 
     IEnumerator GenerateLevel(float time)
@@ -90,9 +96,27 @@ public class SessionManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (debugMap.FindAction("New level").WasReleasedThisFrame())
+        if (isDebug)
         {
-            NewLevel();
+            if (debugMap.FindAction("New level").WasReleasedThisFrame())
+            {
+                NewLevel();
+            }
+        }
+
+        if (debugMap.FindAction("Enter Debug").WasReleasedThisFrame())
+        {
+            
+            if (isDebug)
+            {
+                isDebug =  false;
+                debugPanel.SetActive(false);
+            }
+            else
+            {
+                isDebug = true;
+                debugPanel.SetActive(true);
+            }
         }
     }
     

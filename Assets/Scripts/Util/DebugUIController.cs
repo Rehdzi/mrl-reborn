@@ -6,8 +6,6 @@ namespace Util
     public class DebugUIController : MonoBehaviour
     {
         
-        public GameObject session;
-        
         [Header("Level Panel")]
         public TextMeshProUGUI levelText;
         public TextMeshProUGUI globalDiffText;
