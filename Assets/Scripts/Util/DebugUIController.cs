@@ -1,36 +1,79 @@
 using TMPro;
 using UnityEngine;
 
-public class DebugUIController : MonoBehaviour
+namespace Util
 {
-    
-    public TextMeshProUGUI levelText;
-    public GameObject session;
-    
-    private int _lastLevel = int.MinValue;
-    
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class DebugUIController : MonoBehaviour
     {
-        var manager = session != null ? session.GetComponent<SessionManager>() : null;
-        if (manager != null)
+    
+        public TextMeshProUGUI levelText;
+        public TextMeshProUGUI globalDiffText;
+        public TextMeshProUGUI localDiffText;
+        
+        public GameObject session;
+    
+        int lastLevel = int.MinValue;
+        float lastGlobalDiff = float.MinValue;
+        float lastLocalDiff = float.MinValue;
+    
+        
+        
+        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        void Start()
         {
-            _lastLevel = manager.level;
-            levelText.text = "Level: " + _lastLevel;
+            SessionManager manager = session != null ? session.GetComponent<SessionManager>() : null;
+            
+            if (manager != null)
+            {
+                lastLevel = manager.level;
+                levelText.text += lastLevel;
+
+                lastGlobalDiff = manager.globalDifficulty;
+                globalDiffText.text += lastGlobalDiff;
+                
+                lastLocalDiff = manager.localDifficulty;
+                localDiffText.text += lastLocalDiff;
+
+                //UIUtilFunctions.AssignNewValue(levelText, _lastLevel,  manager.level);
+            }
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+            var manager = session != null ? session.GetComponent<SessionManager>() : null;
+            var currentLevel = manager.level;
+            var currentGlobalDiff = manager.globalDifficulty;
+            var currentLocalDiff = manager.localDifficulty;
+            if (currentLevel != lastLevel)
+            {
+                lastLevel = currentLevel;
+                levelText.text = "Level: " + lastLevel;
+                
+                lastGlobalDiff =  currentGlobalDiff;
+                globalDiffText.text = "Global Difficulty: " + lastGlobalDiff;
+                
+                lastLocalDiff =  currentLocalDiff;
+                localDiffText.text = "Local Difficulty: " + lastLocalDiff;
+            }
+            
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    public class UIUtilFunctions
     {
-        var manager = session != null ? session.GetComponent<SessionManager>() : null;
-        if (manager == null) return;
-
-        var currentLevel = manager.level;
-        if (currentLevel != _lastLevel)
+        public static void AssignNewValue(TextMeshProUGUI text, float managerValue, float cachedValue, bool isInt = true)
         {
-            _lastLevel = currentLevel;
-            levelText.text = "Level: " + _lastLevel;
+            var newValue = managerValue;
+            
+            if (newValue != cachedValue)
+            {
+                cachedValue = newValue;
+                text.text += cachedValue;
+            }
         }
     }
 }
+
+

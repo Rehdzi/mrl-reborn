@@ -10,6 +10,7 @@ public class SessionManager : MonoBehaviour
 
     public int level;
     public float globalDifficulty = 1.0f;
+    public float localDifficulty;
 
     public static SessionManager instance { get; set; }
 
@@ -36,11 +37,20 @@ public class SessionManager : MonoBehaviour
 
     IEnumerator GenerateLevel(float time)
     {
-        var levelPrefab = GetComponent<Level>();
+        Level levelComponent = GetComponent<Level>();
+        if (levelComponent == null && levelPrefab != null)
+        {
+            levelComponent = levelPrefab.GetComponent<Level>();
+        }
         
         yield return new WaitForSeconds(time);
-        levelPrefab.GenerateMap();
-        levelPrefab.GenerateLocalDifficulty();
+        if (levelComponent == null)
+        {
+            Debug.LogError("Level component not found on SessionManager or assigned levelPrefab.");
+            yield break;
+        }
+        levelComponent.GenerateLevel();
+        localDifficulty = levelComponent.localDifficulty;
 
     }
 
