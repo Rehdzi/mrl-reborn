@@ -8,9 +8,13 @@ public class SessionManager : MonoBehaviour
     
     public GameObject levelPrefab;
 
-    public int level;
+    public int level = 1;
     public float globalDifficulty = 1.0f;
     public float localDifficulty;
+    
+    [Header("Система глубины уровня")]
+    [SerializeField] private int currentLevelDepth = 1;
+    [SerializeField] private bool autoIncrementDepth = true;
 
     public static SessionManager instance { get; set; }
 
@@ -30,6 +34,12 @@ public class SessionManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // Инициализируем глубину уровня равной начальному уровню
+        if (autoIncrementDepth)
+        {
+            currentLevelDepth = level;
+        }
+        
         NewLevel();
         
         debugMap = InputSystem.actions.FindActionMap("Debug");
@@ -49,6 +59,9 @@ public class SessionManager : MonoBehaviour
             Debug.LogError("Level component not found on SessionManager or assigned levelPrefab.");
             yield break;
         }
+        
+        // Устанавливаем глубину уровня перед генерацией
+        levelComponent.SetLevelDepth(currentLevelDepth);
         levelComponent.GenerateLevel();
         localDifficulty = levelComponent.localDifficulty;
 
@@ -58,6 +71,15 @@ public class SessionManager : MonoBehaviour
     {
         level++;
         globalDifficulty += 0.1f;
+        
+        // Глубина уровня должна соответствовать номеру уровня
+        if (autoIncrementDepth)
+        {
+            currentLevelDepth = level;
+        }
+        
+        Debug.Log($"Переход на уровень {level}, глубина: {currentLevelDepth}");
+        
         StartCoroutine(GenerateLevel(_defaultTime));
         // Other new level logics
         
@@ -72,5 +94,59 @@ public class SessionManager : MonoBehaviour
         {
             NewLevel();
         }
+    }
+    
+    /// <summary>
+    /// Получает текущую глубину уровня
+    /// </summary>
+    public int GetCurrentLevelDepth()
+    {
+        return currentLevelDepth;
+    }
+    
+    /// <summary>
+    /// Устанавливает глубину уровня
+    /// </summary>
+    public void SetLevelDepth(int depth)
+    {
+        currentLevelDepth = Mathf.Max(1, depth);
+        // Синхронизируем уровень с глубиной если включено автоматическое управление
+        if (autoIncrementDepth)
+        {
+            level = currentLevelDepth;
+        }
+        Debug.Log($"Глубина уровня установлена на: {currentLevelDepth}");
+    }
+    
+    /// <summary>
+    /// Увеличивает глубину уровня на указанное значение
+    /// </summary>
+    public void IncrementLevelDepth(int amount = 1)
+    {
+        currentLevelDepth += amount;
+        // Синхронизируем уровень с глубиной если включено автоматическое управление
+        if (autoIncrementDepth)
+        {
+            level = currentLevelDepth;
+        }
+        Debug.Log($"Глубина уровня увеличена до: {currentLevelDepth}");
+    }
+    
+    /// <summary>
+    /// Переключает автоматическое увеличение глубины
+    /// </summary>
+    public void ToggleAutoIncrementDepth()
+    {
+        autoIncrementDepth = !autoIncrementDepth;
+        Debug.Log($"Автоматическое увеличение глубины: {(autoIncrementDepth ? "включено" : "выключено")}");
+    }
+    
+    /// <summary>
+    /// Сбрасывает глубину уровня до начального значения
+    /// </summary>
+    public void ResetLevelDepth()
+    {
+        currentLevelDepth = 1;
+        Debug.Log("Глубина уровня сброшена до 1");
     }
 }

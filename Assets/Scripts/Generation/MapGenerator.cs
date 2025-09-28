@@ -20,7 +20,14 @@ public class MapGenerator : MonoBehaviour
     [SerializeField, Min(0.01f)] public float caveSquareSize = 1f;
     [SerializeField, Range(0f, 1f)] public float interpolationThreshold = 0.5f;
 
-    public BiomeData biome;
+    public BiomeData[] biomes;
+    
+    [Header("Климатическая система")]
+    [SerializeField] private bool useClimateBasedBiomes = true;
+    
+    [Header("Параметры генерации")]
+    [SerializeField] private LevelGenerationParameters baseGenerationParameters = new LevelGenerationParameters();
+    [SerializeField] private bool useBiomeAdaptation = true;
     
     private int[,] map;
     
@@ -32,15 +39,18 @@ public class MapGenerator : MonoBehaviour
     
     public void GenerateMap()
     {
+        // Получаем адаптированные параметры генерации
+        var generationParams = GetAdaptedGenerationParameters();
+        
         map =  new int[width, height];
-        RandomFillMap();
+        RandomFillMap(generationParams);
 
-        for (int i = 0; i < smoothIterations; i++)
+        for (int i = 0; i < generationParams.smoothIterations; i++)
         {
             SmoothMap();
         }
         
-        ProcessMap();
+        ProcessMap(generationParams);
 
         var borderedMap = new int[width + borderSize * 2,  height + borderSize * 2];
 
@@ -64,6 +74,12 @@ public class MapGenerator : MonoBehaviour
         if (roomGen != null)
         {
             roomGen.GenerateRooms();
+        }
+        
+        // Применяем климатические биомы если включено
+        if (useClimateBasedBiomes)
+        {
+            ApplyClimateBasedBiomes();
         }
     }
 
@@ -207,55 +223,6 @@ public class MapGenerator : MonoBehaviour
         return false;
     }
 
-    void ProcessMap()
-    {
-        const int wallTresholdSize = 50;
-        const int roomTresholdSize = 50;
-        
-        var wallRegions = GetRegions(1);
-        var roomRegions = GetRegions(0);
-        
-        foreach (var wallRegion in wallRegions)
-        {
-            if (wallRegion.Count < wallTresholdSize)
-            {
-                foreach (var tile in wallRegion)
-                {
-                    map[tile.tileX, tile.tileY] = 0;
-                }
-            }
-        }
-        
-        var survivingRooms = new List<Room>(roomRegions.Count);
-        
-        
-        foreach (var roomRegion in roomRegions)
-        {
-            if (roomRegion.Count < roomTresholdSize)
-            {
-                foreach (var tile in roomRegion)
-                {
-                    map[tile.tileX, tile.tileY] = 1;
-                }
-            }
-            else
-            {
-                survivingRooms.Add(new Room(roomRegion, map));
-            }
-        }
-        
-        if (survivingRooms.Count > 0)
-        {
-            survivingRooms.Sort();
-            survivingRooms[0].IsMainRoom =  true;
-            survivingRooms[0].IsAccessibleFromMainRoom = true;
-        }
-        // foreach (Room r in survivingRooms)
-        // {
-        //     print(r.roomSize);               //Display room sizes
-        // }
-        ConnectClosestRooms(survivingRooms);
-    }
 
     void ConnectClosestRooms(List<Room> allRooms, bool forceAccess = false)
     {
@@ -514,30 +481,6 @@ public class MapGenerator : MonoBehaviour
         return x >= 0 && x < width && y >= 0 && y < height;
     }
     
-    void RandomFillMap()
-    {
-        if (useRandomSeed)
-        {
-            seed = Time.time.ToString();
-        }
-
-        var prng = new System.Random(seed.GetHashCode());
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
-                {
-                    map[x, y] = 1;
-                }
-                else
-                {
-                    map[x, y] = prng.Next(0, 100) < randomFillPercent ? 1 : 0;
-                }
-            }
-        }
-    }
 
     void SmoothMap()
     {
@@ -594,7 +537,6 @@ public class MapGenerator : MonoBehaviour
             tileY = y;
         }
     }
-    
     
     class Room : IComparable<Room>
     {
@@ -673,29 +615,182 @@ public class MapGenerator : MonoBehaviour
         }
     }
     
-    
-    // void OnDrawGizmos()
-    // {
-    //     if (map != null)
-    //     {
-    //         for (int x = 0; x < width; x++)
-    //         {
-    //             for (int y = 0; y < height; y++)
-    //             {
-    //                 Gizmos.color = map[x, y] == 1? Color.green : Color.red;
-    //                 Vector3 pos = new Vector3(-width/2 + x + .5f, 0, -height/2 + y + .5f);
-    //                 Gizmos.DrawCube(pos, Vector3.one);
-    //             }
-    //         }
-    //     }
-    // }
-    
-    // Update is called once per frame
-    void Update()
+    /// <summary>
+    /// Применяет биомы на основе климатических условий уровня
+    /// </summary>
+    private void ApplyClimateBasedBiomes()
     {
-        // if (Input.GetKeyDown(KeyCode.Space))
-        // {
-        //     GenerateMap();
-        // }
+        var level = Level.levelInstance;
+        if (level == null || level.environment == null || biomes == null || biomes.Length == 0)
+            return;
+        
+        float temperature = level.environment.CurrentTemperature;
+        float humidity = level.environment.CurrentHumidity;
+        
+        // Находим наиболее подходящий биом
+        BiomeData bestBiome = GetBestMatchingBiome(temperature, humidity);
+        
+        if (bestBiome != null)
+        {
+            Debug.Log($"Выбран биом '{bestBiome.biomeName}' для температуры {temperature:F1}°C и влажности {humidity:F1}%");
+            
+            // Здесь можно добавить логику применения материалов биома к мешу
+            // Например, изменение цветов, текстур и т.д.
+        }
+        else
+        {
+            Debug.LogWarning("Не найден подходящий биом для текущих климатических условий");
+        }
     }
+    
+    /// <summary>
+    /// Находит наиболее подходящий биом для указанных климатических условий
+    /// </summary>
+    private BiomeData GetBestMatchingBiome(float temperature, float humidity)
+    {
+        BiomeData bestBiome = null;
+        float bestScore = 0f;
+        
+        foreach (var biome in biomes)
+        {
+            if (biome == null) continue;
+            
+            float score = biome.GetCompatibilityScore(temperature, humidity);
+            
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestBiome = biome;
+            }
+        }
+        
+        return bestBiome;
+    }
+    
+    /// <summary>
+    /// Получает все подходящие биомы для текущих климатических условий
+    /// </summary>
+    public BiomeData[] GetSuitableBiomes()
+    {
+        var level = Level.levelInstance;
+        if (level == null || level.environment == null || biomes == null)
+            return new BiomeData[0];
+        
+        float temperature = level.environment.CurrentTemperature;
+        float humidity = level.environment.CurrentHumidity;
+        
+        var suitableBiomes = new System.Collections.Generic.List<BiomeData>();
+        
+        foreach (var biome in biomes)
+        {
+            if (biome != null && biome.IsSuitableForEnvironment(temperature, humidity))
+            {
+                suitableBiomes.Add(biome);
+            }
+        }
+        
+        return suitableBiomes.ToArray();
+    }
+    
+    /// <summary>
+    /// Получает адаптированные параметры генерации на основе текущего биома
+    /// </summary>
+    private LevelGenerationParameters GetAdaptedGenerationParameters()
+    {
+        var parameters = baseGenerationParameters.Clone();
+        
+        if (useBiomeAdaptation)
+        {
+            var level = Level.levelInstance;
+            if (level?.environment != null)
+            {
+                BiomeType biomeType = level.environment.GetBiomeType();
+                var modifiers = BiomeGenerationAdapter.GetModifiersForBiome(biomeType);
+                parameters.ApplyModifiers(modifiers);
+                
+                Debug.Log($"Применены модификаторы для биома {biomeType}: {BiomeGenerationAdapter.GetBiomeGenerationDescription(biomeType)}");
+            }
+        }
+        
+        return parameters;
+    }
+    
+    /// <summary>
+    /// Обновленная версия RandomFillMap с адаптированными параметрами
+    /// </summary>
+    private void RandomFillMap(LevelGenerationParameters parameters)
+    {
+        if (useRandomSeed)
+        {
+            seed = Time.time.ToString();
+        }
+
+        var prng = new System.Random(seed.GetHashCode());
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
+                {
+                    map[x, y] = 1;
+                }
+                else
+                {
+                    map[x, y] = prng.Next(0, 100) < parameters.randomFillPercent ? 1 : 0;
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Обновленная версия ProcessMap с адаптированными параметрами
+    /// </summary>
+    private void ProcessMap(LevelGenerationParameters parameters)
+    {
+        int wallTresholdSize = parameters.wallThresholdSize;
+        int roomTresholdSize = parameters.roomThresholdSize;
+        
+        var wallRegions = GetRegions(1);
+        var roomRegions = GetRegions(0);
+        
+        foreach (var wallRegion in wallRegions)
+        {
+            if (wallRegion.Count < wallTresholdSize)
+            {
+                foreach (var tile in wallRegion)
+                {
+                    map[tile.tileX, tile.tileY] = 0;
+                }
+            }
+        }
+        
+        var survivingRooms = new List<Room>(roomRegions.Count);
+        
+        foreach (var roomRegion in roomRegions)
+        {
+            if (roomRegion.Count < roomTresholdSize)
+            {
+                foreach (var tile in roomRegion)
+                {
+                    map[tile.tileX, tile.tileY] = 1;
+                }
+            }
+            else
+            {
+                survivingRooms.Add(new Room(roomRegion, map));
+            }
+        }
+        
+        if (survivingRooms.Count > 0)
+        {
+            survivingRooms.Sort();
+            survivingRooms[0].IsMainRoom = true;
+            survivingRooms[0].IsAccessibleFromMainRoom = true;
+        }
+        
+        ConnectClosestRooms(survivingRooms);
+    }
+    
+    
 }
