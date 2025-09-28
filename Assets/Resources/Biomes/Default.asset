@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00ba10269d2448869449e66d9aab0668, type: 3}
   m_Name: Default
   m_EditorClassIdentifier: Assembly-CSharp::Generation.BiomeData
-  name: Mineshaft
-  temperature: 1
-  humidity: 0.5
+  biomeName: Default
+  biomeType: 4
+  temperature: 20
+  humidity: 50
+  temperatureTolerance: 5
+  humidityTolerance: 15
   entities: []
+  materials: []

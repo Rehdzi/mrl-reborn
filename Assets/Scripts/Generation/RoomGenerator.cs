@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RoomGenerator : MonoBehaviour
+namespace Generation
+{
+    public class RoomGenerator : MonoBehaviour
 {
     [Header("Rooms Placement")]
     [SerializeField, Min(1)] public int roomsCount = 7;
@@ -27,13 +29,16 @@ public class RoomGenerator : MonoBehaviour
         EnsureRoot();
         ClearPlaceholders();
 
+        // Получаем адаптированные параметры генерации
+        var generationParams = GetAdaptedGenerationParameters(mapGen);
+
         var rng = new System.Random(mapGen.seed.GetHashCode());
         int tries = 0;
-        while (placedRooms.Count < roomsCount && tries < placementAttempts)
+        while (placedRooms.Count < generationParams.roomsCount && tries < generationParams.placementAttempts)
         {
             tries++;
-            int w = rng.Next(roomSizeMin.x, roomSizeMax.x + 1);
-            int h = rng.Next(roomSizeMin.y, roomSizeMax.y + 1);
+            int w = rng.Next(generationParams.roomSizeMin.x, generationParams.roomSizeMax.x + 1);
+            int h = rng.Next(generationParams.roomSizeMin.y, generationParams.roomSizeMax.y + 1);
             int x = rng.Next(2, mapGen.width - w - 2);
             int y = rng.Next(2, mapGen.height - h - 2);
             var rect = new RectInt(x, y, w, h);
@@ -44,7 +49,7 @@ public class RoomGenerator : MonoBehaviour
             roomCenters.Add(center);
             centerToRect[center] = rect;
             mapGen.CarveRectangle(x, y, w, h);
-            CreatePlaceholder(rect, mapGen.caveSquareSize, roomHeight);
+            CreatePlaceholder(rect, generationParams.caveSquareSize, generationParams.roomHeight);
         }
 
         // Connect rooms with corridors using MST-like greedy
@@ -69,8 +74,8 @@ public class RoomGenerator : MonoBehaviour
                     }
                 }
                 if (bestA == -1 || bestB == -1) break;
-                mapGen.CarveCorridor(roomCenters[bestA], roomCenters[bestB], corridorRadius, mergeThreshold);
-                CreateCorridorPlaceholder(roomCenters[bestA], roomCenters[bestB], mapGen.caveSquareSize, roomHeight, corridorRadius);
+                mapGen.CarveCorridor(roomCenters[bestA], roomCenters[bestB], generationParams.corridorRadius, generationParams.mergeThreshold);
+                CreateCorridorPlaceholder(roomCenters[bestA], roomCenters[bestB], generationParams.caveSquareSize, generationParams.roomHeight, generationParams.corridorRadius);
                 inTree.Add(bestB);
             }
         }
@@ -204,6 +209,35 @@ public class RoomGenerator : MonoBehaviour
         return a.xMin < b.xMax && a.xMax > b.xMin && a.yMin < b.yMax && a.yMax > b.yMin;
     }
 
+    /// <summary>
+    /// Получает адаптированные параметры генерации на основе текущего биома
+    /// </summary>
+    private LevelGenerationParameters GetAdaptedGenerationParameters(MapGenerator mapGen)
+    {
+        var parameters = new LevelGenerationParameters
+        {
+            roomsCount = this.roomsCount,
+            roomSizeMin = this.roomSizeMin,
+            roomSizeMax = this.roomSizeMax,
+            placementAttempts = this.placementAttempts,
+            corridorRadius = this.corridorRadius,
+            mergeThreshold = this.mergeThreshold,
+            roomHeight = this.roomHeight,
+            caveSquareSize = mapGen.caveSquareSize
+        };
+        
+        // Применяем модификаторы биома если включено
+        var level = Level.levelInstance;
+        if (level?.environment != null)
+        {
+            BiomeType biomeType = level.environment.GetBiomeType();
+            var modifiers = BiomeGenerationAdapter.GetModifiersForBiome(biomeType);
+            parameters.ApplyModifiers(modifiers);
+        }
+        
+        return parameters;
+    }
+    
     // Optional manual trigger
     void Update()
     {
@@ -213,3 +247,5 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 }
+}
+
