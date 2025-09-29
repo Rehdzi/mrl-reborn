@@ -695,6 +695,17 @@
                     "action": "Enter Debug",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "45fdb7c7-81ec-407e-90f0-7863d1a99075",
+                    "path": "<Keyboard>/f3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Enter Debug",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }
