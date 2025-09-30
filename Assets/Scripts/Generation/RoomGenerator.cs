@@ -28,6 +28,7 @@ namespace Generation
 
         EnsureRoot();
         ClearPlaceholders();
+        mapGen.ClearGeneratedRooms();
 
         // Получаем адаптированные параметры генерации
         var generationParams = GetAdaptedGenerationParameters(mapGen);
@@ -49,7 +50,7 @@ namespace Generation
             roomCenters.Add(center);
             centerToRect[center] = rect;
             mapGen.CarveRectangle(x, y, w, h);
-            CreatePlaceholder(rect, generationParams.caveSquareSize, generationParams.roomHeight);
+            mapGen.CreateRoomFromRect(rect, generationParams.caveSquareSize, generationParams.roomHeight, placeholderMaterial, roomsRoot);
         }
 
         // Connect rooms with corridors using MST-like greedy
@@ -90,12 +91,18 @@ namespace Generation
             var go = GameObject.Find("RoomsRoot") ?? new GameObject("RoomsRoot");
             roomsRoot = go.transform;
             roomsRoot.SetParent(transform, false);
+            roomsRoot.localPosition = Vector3.zero;
+            roomsRoot.localRotation = Quaternion.identity;
+            roomsRoot.localScale = Vector3.one;
         }
         if (corridorsRoot == null)
         {
             var go = GameObject.Find("CorridorsRoot") ?? new GameObject("CorridorsRoot");
             corridorsRoot = go.transform;
             corridorsRoot.SetParent(transform, false);
+            corridorsRoot.localPosition = Vector3.zero;
+            corridorsRoot.localRotation = Quaternion.identity;
+            corridorsRoot.localScale = Vector3.one;
         }
     }
 
