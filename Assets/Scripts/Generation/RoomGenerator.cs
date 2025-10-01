@@ -12,18 +12,21 @@ namespace Generation
     [SerializeField] public int placementAttempts = 40;
     [SerializeField] public int corridorRadius = 2;
     [SerializeField] public int mergeThreshold = 3;
+	[SerializeField, 
+     Tooltip("Если зазор между комнатами (в тайлах) меньше или равен, коридор не создается")] 
+    public int minCorridorGapTiles = 5;
     [SerializeField] public float roomHeight = 5f;
     [SerializeField] public Material placeholderMaterial;
 
-    readonly List<RectInt> placedRooms = new();
-    readonly List<Vector2Int> roomCenters = new();
-    readonly Dictionary<Vector2Int, RectInt> centerToRect = new();
+	readonly List<RectangleRoom> rooms = new();
+	readonly List<Vector2Int> roomCenters = new();
+	readonly Dictionary<Vector2Int, RectInt> centerToRect = new();
     Transform roomsRoot;
     Transform corridorsRoot;
 
     public void GenerateRooms()
     {
-        var mapGen = GetComponent<MapGenerator>();
+        var mapGen = MapGenerator.instance;
         if (mapGen == null) return;
 
         EnsureRoot();
@@ -34,7 +37,7 @@ namespace Generation
 
         var rng = new System.Random(mapGen.seed.GetHashCode());
         int tries = 0;
-        while (placedRooms.Count < generationParams.roomsCount && tries < generationParams.placementAttempts)
+		while (rooms.Count < generationParams.roomsCount && tries < generationParams.placementAttempts)
         {
             tries++;
             int w = rng.Next(generationParams.roomSizeMin.x, generationParams.roomSizeMax.x + 1);
@@ -44,16 +47,27 @@ namespace Generation
             var rect = new RectInt(x, y, w, h);
             if (IntersectsAny(rect, 2)) continue;
 
-            placedRooms.Add(rect);
-            var center = new Vector2Int(x + w / 2, y + h / 2);
-            roomCenters.Add(center);
-            centerToRect[center] = rect;
-            mapGen.CarveRectangle(x, y, w, h);
-            CreatePlaceholder(rect, generationParams.caveSquareSize, generationParams.roomHeight);
+			var room = new RectangleRoom(rect);
+			rooms.Add(room);
+			room.Carve(mapGen);
+			room.CreatePlaceholder(roomsRoot, generationParams.caveSquareSize, generationParams.roomHeight, placeholderMaterial, mapGen.width, mapGen.height);
         }
 
-        // Connect rooms with corridors using MST-like greedy
-        if (roomCenters.Count > 1)
+		// Rebuild centers and lookup map from rooms for corridor generation/trim
+		roomCenters.Clear();
+		centerToRect.Clear();
+		for (int i = 0; i < rooms.Count; i++)
+		{
+			var c = rooms[i].Center;
+			roomCenters.Add(c);
+			centerToRect[c] = rooms[i].rect;
+		}
+
+		// Find the two most distant rooms and mark them as start and end
+		MarkStartAndEndRooms();
+
+		// Connect rooms with corridors using MST-like greedy
+		if (roomCenters.Count > 1)
         {
             // Prim's algorithm
             var inTree = new HashSet<int> { 0 };
@@ -73,10 +87,17 @@ namespace Generation
                         }
                     }
                 }
-                if (bestA == -1 || bestB == -1) break;
-                mapGen.CarveCorridor(roomCenters[bestA], roomCenters[bestB], generationParams.corridorRadius, generationParams.mergeThreshold);
-                CreateCorridorPlaceholder(roomCenters[bestA], roomCenters[bestB], generationParams.caveSquareSize, generationParams.roomHeight, generationParams.corridorRadius);
-                inTree.Add(bestB);
+				if (bestA == -1 || bestB == -1) break;
+				// Skip corridor if rooms are too close to each other
+				var rectA = centerToRect[roomCenters[bestA]];
+				var rectB = centerToRect[roomCenters[bestB]];
+				int gapTiles = ComputeRectGapTiles(rectA, rectB);
+				if (gapTiles > minCorridorGapTiles)
+				{
+					mapGen.CarveCorridor(roomCenters[bestA], roomCenters[bestB], generationParams.corridorRadius, generationParams.mergeThreshold);
+					CreateCorridorPlaceholder(roomCenters[bestA], roomCenters[bestB], generationParams.caveSquareSize, generationParams.roomHeight, generationParams.corridorRadius);
+				}
+				inTree.Add(bestB);
             }
         }
 
@@ -115,9 +136,9 @@ namespace Generation
                 DestroyImmediate(corridorsRoot.GetChild(i).gameObject);
             }
         }
-        placedRooms.Clear();
-        roomCenters.Clear();
-        centerToRect.Clear();
+		rooms.Clear();
+		roomCenters.Clear();
+		centerToRect.Clear();
     }
 
     void CreatePlaceholder(RectInt rect, float squareSize, float height)
@@ -194,12 +215,12 @@ namespace Generation
         return Mathf.Min(tx, tz);
     }
 
-    bool IntersectsAny(RectInt rect, int padding)
+	bool IntersectsAny(RectInt rect, int padding)
     {
-        var expanded = new RectInt(rect.x - padding, rect.y - padding, rect.width + padding*2, rect.height + padding*2);
-        foreach (var r in placedRooms)
+		var expanded = new RectInt(rect.x - padding, rect.y - padding, rect.width + padding*2, rect.height + padding*2);
+		foreach (var r in rooms)
         {
-            if (RectOverlap(expanded, r)) return true;
+			if (RectOverlap(expanded, r.rect)) return true;
         }
         return false;
     }
@@ -208,6 +229,49 @@ namespace Generation
     {
         return a.xMin < b.xMax && a.xMax > b.xMin && a.yMin < b.yMax && a.yMax > b.yMin;
     }
+
+		// Минимальный зазор между двумя прямоугольниками комнат в тайлах (0, если касаются/перекрываются)
+		static int ComputeRectGapTiles(RectInt a, RectInt b)
+		{
+			int dx = 0;
+			if (a.xMax < b.xMin) dx = b.xMin - a.xMax; // a слева от b
+			else if (b.xMax < a.xMin) dx = a.xMin - b.xMax; // b слева от a
+
+			int dy = 0;
+			if (a.yMax < b.yMin) dy = b.yMin - a.yMax; // a ниже b (в сетке y растет вверх)
+			else if (b.yMax < a.yMin) dy = a.yMin - b.yMax; // b ниже a
+
+			// Минимальное евклидово расстояние между прямоугольниками в тайлах.
+			// Для порога разумно использовать max(dx, dy) как «зазор по клеткам».
+			return Mathf.Max(dx, dy);
+		}
+
+		void MarkStartAndEndRooms()
+		{
+			if (rooms.Count < 2) return;
+
+			float maxDistance = 0f;
+			int startIndex = 0, endIndex = 1;
+
+			// Find the pair of rooms with maximum distance between their centers
+			for (int i = 0; i < rooms.Count; i++)
+			{
+				for (int j = i + 1; j < rooms.Count; j++)
+				{
+					float distance = Vector2Int.Distance(rooms[i].Center, rooms[j].Center);
+					if (distance > maxDistance)
+					{
+						maxDistance = distance;
+						startIndex = i;
+						endIndex = j;
+					}
+				}
+			}
+
+			// Mark the most distant rooms as start and end
+			rooms[startIndex].IsStartRoom = true;
+			rooms[endIndex].IsEndRoom = true;
+		}
 
     /// <summary>
     /// Получает адаптированные параметры генерации на основе текущего биома
@@ -237,15 +301,178 @@ namespace Generation
         
         return parameters;
     }
+
+	class RectangleRoom
+	{
+		public bool IsStartRoom;
+		public bool IsEndRoom;
+		public RectInt rect;
+		public Vector2Int Center => new Vector2Int(rect.x + rect.width / 2, rect.y + rect.height / 2);
+
+		public RectangleRoom(RectInt rect)
+		{
+			this.rect = rect;
+		}
+
+		public void Carve(MapGenerator mapGen)
+		{
+			mapGen.CarveRectangle(rect.x, rect.y, rect.width, rect.height);
+		}
+
+		public void CreatePlaceholder(Transform roomsRoot, float squareSize, float height, Material placeholderMaterial, int mapTilesWidth, int mapTilesHeight)
+		{
+			var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			go.name = $"Room_{rect.x}_{rect.y}";
+			go.transform.SetParent(roomsRoot, false);
+			float w = rect.width * squareSize;
+			float h = rect.height * squareSize;
+			go.transform.localScale = new Vector3(w, height, h);
+			float mapW = mapTilesWidth * squareSize;
+			float mapH = mapTilesHeight * squareSize;
+			float cx = -mapW/2f + (rect.x + rect.width/2f) * squareSize;
+			float cz = -mapH/2f + (rect.y + rect.height/2f) * squareSize;
+			go.transform.localPosition = new Vector3(cx, height/2f, cz);
+			var mr = go.GetComponent<MeshRenderer>();
+			if (placeholderMaterial != null) mr.sharedMaterial = placeholderMaterial;
+		}
+	}
     
-    // Optional manual trigger
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            GenerateRooms();
-        }
-    }
+		// Draw Gizmos to visualize start and end rooms
+		void OnDrawGizmos()
+		{
+			if (rooms == null) return;
+
+			foreach (var room in rooms)
+			{
+				if (room.IsStartRoom)
+				{
+					// Green sphere for start room
+					Gizmos.color = Color.green;
+					Vector3 worldPos = GridToWorldPosition(room.Center);
+					Gizmos.DrawWireSphere(worldPos, 2f);
+					Gizmos.DrawSphere(worldPos, 1.5f);
+				}
+				else if (room.IsEndRoom)
+				{
+					// Red sphere for end room
+					Gizmos.color = Color.red;
+					Vector3 worldPos = GridToWorldPosition(room.Center);
+					Gizmos.DrawWireSphere(worldPos, 2f);
+					Gizmos.DrawSphere(worldPos, 1.5f);
+				}
+			}
+		}
+
+		// Convert grid position to world position for Gizmos
+		Vector3 GridToWorldPosition(Vector2Int gridPos)
+		{
+			var mapGen = MapGenerator.instance;
+			if (mapGen == null) return Vector3.zero;
+
+			float squareSize = mapGen.caveSquareSize;
+			float mapW = mapGen.width * squareSize;
+			float mapH = mapGen.height * squareSize;
+			
+			float x = -mapW/2f + gridPos.x * squareSize;
+			float z = -mapH/2f + gridPos.y * squareSize;
+			return new Vector3(x, 7f, z); // Slightly above ground
+		}
+
+		// Level transition logic
+		public void TransitionToNextLevel()
+		{
+			Debug.Log("Transitioning to next level...");
+			
+			// Get the current level instance
+			var session = SessionManager.instance;
+			if (session != null)
+			{
+				// Generate new level - SessionManager will handle camera positioning
+				session.NewLevel();
+			}
+			else
+			{
+				Debug.LogWarning("SessionManager instance not found. Cannot transition to next level.");
+			}
+		}
+
+		// Get the world position of the start room
+		public Vector3 GetStartRoomWorldPosition()
+		{
+			if (rooms == null) return Vector3.zero;
+
+			// Find the start room
+			RectangleRoom startRoom = null;
+			foreach (var room in rooms)
+			{
+				if (room.IsStartRoom)
+				{
+					startRoom = room;
+					break;
+				}
+			}
+
+			if (startRoom == null)
+			{
+				Debug.LogWarning("No start room found.");
+				return Vector3.zero;
+			}
+
+			// Convert start room center to world position
+			return GridToWorldPosition(startRoom.Center);
+		}
+
+		// Handle mouse clicks for Gizmo interaction
+		void OnDrawGizmosSelected()
+		{
+			// This method is called when the object is selected
+			// We can use this to detect clicks on the end room
+		}
+
+		// Check for mouse clicks on end room Gizmos
+		void Update()
+		{
+			if (Input.GetMouseButtonDown(0)) // Left mouse button
+			{
+				CheckForEndRoomClick();
+			}
+		}
+
+		void CheckForEndRoomClick()
+		{
+			if (rooms == null) return;
+
+			// Get mouse position in world space
+			Camera cam = Camera.main;
+			if (cam == null) return;
+
+			Vector3 mousePos = Input.mousePosition;
+			Ray ray = cam.ScreenPointToRay(mousePos);
+
+			// Check if ray intersects with any end room
+			foreach (var room in rooms)
+			{
+				if (room.IsEndRoom)
+				{
+					Vector3 worldPos = GridToWorldPosition(room.Center);
+					
+					// Simple distance check (you might want to use proper ray-sphere intersection)
+					float distance = Vector3.Distance(ray.origin, worldPos);
+					if (distance < 5f) // Adjust this threshold as needed
+					{
+						// Check if the ray is roughly pointing towards the room
+						Vector3 directionToRoom = (worldPos - ray.origin).normalized;
+						float dot = Vector3.Dot(ray.direction, directionToRoom);
+						
+						if (dot > 0.7f) // Adjust this threshold as needed
+						{
+							TransitionToNextLevel();
+							break;
+						}
+					}
+				}
+			}
+		}
 }
 }
 

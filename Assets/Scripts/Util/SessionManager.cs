@@ -53,11 +53,7 @@ public class SessionManager : MonoBehaviour
 
     IEnumerator GenerateLevel(float time)
     {
-        Level levelComponent = GetComponent<Level>();
-        if (levelComponent == null && levelPrefab != null)
-        {
-            levelComponent = levelPrefab.GetComponent<Level>();
-        }
+        Level levelComponent = Level.levelInstance;
         
         yield return new WaitForSeconds(time);
         if (levelComponent == null)
@@ -71,9 +67,12 @@ public class SessionManager : MonoBehaviour
         levelComponent.GenerateLevel();
         localDifficulty = levelComponent.localDifficulty;
 
+        // Move camera to start room after level generation
+        yield return new WaitForSeconds(0.1f); // Small delay to ensure level generation is complete
+        MoveCameraToStartRoom();
     }
 
-    void NewLevel()
+    public void NewLevel()
     {
         level++;
         globalDifficulty += 0.1f;
@@ -172,5 +171,45 @@ public class SessionManager : MonoBehaviour
     {
         currentLevelDepth = 1;
         Debug.Log("Глубина уровня сброшена до 1");
+    }
+
+    /// <summary>
+    /// Перемещает камеру к стартовой комнате
+    /// </summary>
+    void MoveCameraToStartRoom()
+    {
+        // Find RoomGenerator in the scene
+        var roomGenerator = FindObjectOfType<Generation.RoomGenerator>();
+        if (roomGenerator == null)
+        {
+            Debug.LogWarning("RoomGenerator not found. Cannot move camera to start room.");
+            return;
+        }
+
+        // Get start room position
+        Vector3 startRoomPosition = roomGenerator.GetStartRoomWorldPosition();
+        if (startRoomPosition == Vector3.zero)
+        {
+            Debug.LogWarning("Start room position not found. Cannot move camera.");
+            return;
+        }
+
+        // Get camera and move it to start room position
+        Camera cam = Camera.main;
+        if (cam == null)
+        {
+            Debug.LogWarning("Main camera not found. Cannot move camera.");
+            return;
+        }
+
+        // Move camera to start room with a slight offset for better viewing
+        Vector3 cameraPosition = startRoomPosition + new Vector3(-10, 11, -10); // Offset for better viewing angle
+        cam.transform.position = cameraPosition;
+        cam.transform.rotation = Quaternion.Euler(45, 45, 0);
+        
+        // // Make camera look at the start room
+        // cam.transform.LookAt(startRoomPosition);
+        
+        Debug.Log($"Camera moved to start room at {startRoomPosition}");
     }
 }
