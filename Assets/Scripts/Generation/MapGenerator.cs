@@ -31,11 +31,25 @@ public class MapGenerator : MonoBehaviour
     
     private int[,] map;
     
+    public static MapGenerator instance { get; set; }
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     // void Start()
     // {
     //     GenerateMap();
     // }
+    
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            instance = this;
+        }
+    }
     
     public void GenerateMap()
     {
