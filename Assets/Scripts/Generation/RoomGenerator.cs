@@ -63,6 +63,9 @@ namespace Generation
 			centerToRect[c] = rooms[i].rect;
 		}
 
+		// Find the two most distant rooms and mark them as start and end
+		MarkStartAndEndRooms();
+
 		// Connect rooms with corridors using MST-like greedy
 		if (roomCenters.Count > 1)
         {
@@ -243,6 +246,33 @@ namespace Generation
 			return Mathf.Max(dx, dy);
 		}
 
+		void MarkStartAndEndRooms()
+		{
+			if (rooms.Count < 2) return;
+
+			float maxDistance = 0f;
+			int startIndex = 0, endIndex = 1;
+
+			// Find the pair of rooms with maximum distance between their centers
+			for (int i = 0; i < rooms.Count; i++)
+			{
+				for (int j = i + 1; j < rooms.Count; j++)
+				{
+					float distance = Vector2Int.Distance(rooms[i].Center, rooms[j].Center);
+					if (distance > maxDistance)
+					{
+						maxDistance = distance;
+						startIndex = i;
+						endIndex = j;
+					}
+				}
+			}
+
+			// Mark the most distant rooms as start and end
+			rooms[startIndex].IsStartRoom = true;
+			rooms[endIndex].IsEndRoom = true;
+		}
+
     /// <summary>
     /// Получает адаптированные параметры генерации на основе текущего биома
     /// </summary>
@@ -307,11 +337,142 @@ namespace Generation
 		}
 	}
     
-    // Optional manual trigger
-    void Update()
-    {
-        
-    }
+		// Draw Gizmos to visualize start and end rooms
+		void OnDrawGizmos()
+		{
+			if (rooms == null) return;
+
+			foreach (var room in rooms)
+			{
+				if (room.IsStartRoom)
+				{
+					// Green sphere for start room
+					Gizmos.color = Color.green;
+					Vector3 worldPos = GridToWorldPosition(room.Center);
+					Gizmos.DrawWireSphere(worldPos, 2f);
+					Gizmos.DrawSphere(worldPos, 1.5f);
+				}
+				else if (room.IsEndRoom)
+				{
+					// Red sphere for end room
+					Gizmos.color = Color.red;
+					Vector3 worldPos = GridToWorldPosition(room.Center);
+					Gizmos.DrawWireSphere(worldPos, 2f);
+					Gizmos.DrawSphere(worldPos, 1.5f);
+				}
+			}
+		}
+
+		// Convert grid position to world position for Gizmos
+		Vector3 GridToWorldPosition(Vector2Int gridPos)
+		{
+			var mapGen = MapGenerator.instance;
+			if (mapGen == null) return Vector3.zero;
+
+			float squareSize = mapGen.caveSquareSize;
+			float mapW = mapGen.width * squareSize;
+			float mapH = mapGen.height * squareSize;
+			
+			float x = -mapW/2f + gridPos.x * squareSize;
+			float z = -mapH/2f + gridPos.y * squareSize;
+			return new Vector3(x, 7f, z); // Slightly above ground
+		}
+
+		// Level transition logic
+		public void TransitionToNextLevel()
+		{
+			Debug.Log("Transitioning to next level...");
+			
+			// Get the current level instance
+			var session = SessionManager.instance;
+			if (session != null)
+			{
+				// Generate new level - SessionManager will handle camera positioning
+				session.NewLevel();
+			}
+			else
+			{
+				Debug.LogWarning("SessionManager instance not found. Cannot transition to next level.");
+			}
+		}
+
+		// Get the world position of the start room
+		public Vector3 GetStartRoomWorldPosition()
+		{
+			if (rooms == null) return Vector3.zero;
+
+			// Find the start room
+			RectangleRoom startRoom = null;
+			foreach (var room in rooms)
+			{
+				if (room.IsStartRoom)
+				{
+					startRoom = room;
+					break;
+				}
+			}
+
+			if (startRoom == null)
+			{
+				Debug.LogWarning("No start room found.");
+				return Vector3.zero;
+			}
+
+			// Convert start room center to world position
+			return GridToWorldPosition(startRoom.Center);
+		}
+
+		// Handle mouse clicks for Gizmo interaction
+		void OnDrawGizmosSelected()
+		{
+			// This method is called when the object is selected
+			// We can use this to detect clicks on the end room
+		}
+
+		// Check for mouse clicks on end room Gizmos
+		void Update()
+		{
+			if (Input.GetMouseButtonDown(0)) // Left mouse button
+			{
+				CheckForEndRoomClick();
+			}
+		}
+
+		void CheckForEndRoomClick()
+		{
+			if (rooms == null) return;
+
+			// Get mouse position in world space
+			Camera cam = Camera.main;
+			if (cam == null) return;
+
+			Vector3 mousePos = Input.mousePosition;
+			Ray ray = cam.ScreenPointToRay(mousePos);
+
+			// Check if ray intersects with any end room
+			foreach (var room in rooms)
+			{
+				if (room.IsEndRoom)
+				{
+					Vector3 worldPos = GridToWorldPosition(room.Center);
+					
+					// Simple distance check (you might want to use proper ray-sphere intersection)
+					float distance = Vector3.Distance(ray.origin, worldPos);
+					if (distance < 5f) // Adjust this threshold as needed
+					{
+						// Check if the ray is roughly pointing towards the room
+						Vector3 directionToRoom = (worldPos - ray.origin).normalized;
+						float dot = Vector3.Dot(ray.direction, directionToRoom);
+						
+						if (dot > 0.7f) // Adjust this threshold as needed
+						{
+							TransitionToNextLevel();
+							break;
+						}
+					}
+				}
+			}
+		}
 }
 }
 
