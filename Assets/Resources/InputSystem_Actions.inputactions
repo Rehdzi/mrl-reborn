@@ -687,22 +687,11 @@
                 },
                 {
                     "name": "",
-                    "id": "9ccf0f71-4373-4ab4-a370-4fc5c726f6a3",
-                    "path": "<Keyboard>/f11",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Enter Debug",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "45fdb7c7-81ec-407e-90f0-7863d1a99075",
                     "path": "<Keyboard>/f3",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": ";Keyboard&Mouse",
                     "action": "Enter Debug",
                     "isComposite": false,
                     "isPartOfComposite": false
