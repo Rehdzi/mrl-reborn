@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Generation.RoomGen;
 using UnityEngine;
 
 namespace Generation
@@ -150,7 +151,7 @@ namespace Generation
         float h = rect.height * squareSize;
         go.transform.localScale = new Vector3(w, height, h);
         // Position: convert grid center to local world used by MapGenerator/MeshGenerator (-map/2 offset)
-        var mapGen = GetComponent<MapGenerator>();
+        var mapGen = MapGenerator.instance;
         float mapW = mapGen.width * squareSize;
         float mapH = mapGen.height * squareSize;
         float cx = -mapW/2f + (rect.x + rect.width/2f) * squareSize;
@@ -162,7 +163,7 @@ namespace Generation
 
     void CreateCorridorPlaceholder(Vector2Int from, Vector2Int to, float squareSize, float height, int radius)
     {
-        var mapGen = GetComponent<MapGenerator>();
+        var mapGen = MapGenerator.instance;
         float mapW = mapGen.width * squareSize;
         float mapH = mapGen.height * squareSize;
 
@@ -302,40 +303,7 @@ namespace Generation
         return parameters;
     }
 
-	class RectangleRoom
-	{
-		public bool IsStartRoom;
-		public bool IsEndRoom;
-		public RectInt rect;
-		public Vector2Int Center => new Vector2Int(rect.x + rect.width / 2, rect.y + rect.height / 2);
-
-		public RectangleRoom(RectInt rect)
-		{
-			this.rect = rect;
-		}
-
-		public void Carve(MapGenerator mapGen)
-		{
-			mapGen.CarveRectangle(rect.x, rect.y, rect.width, rect.height);
-		}
-
-		public void CreatePlaceholder(Transform roomsRoot, float squareSize, float height, Material placeholderMaterial, int mapTilesWidth, int mapTilesHeight)
-		{
-			var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-			go.name = $"Room_{rect.x}_{rect.y}";
-			go.transform.SetParent(roomsRoot, false);
-			float w = rect.width * squareSize;
-			float h = rect.height * squareSize;
-			go.transform.localScale = new Vector3(w, height, h);
-			float mapW = mapTilesWidth * squareSize;
-			float mapH = mapTilesHeight * squareSize;
-			float cx = -mapW/2f + (rect.x + rect.width/2f) * squareSize;
-			float cz = -mapH/2f + (rect.y + rect.height/2f) * squareSize;
-			go.transform.localPosition = new Vector3(cx, height/2f, cz);
-			var mr = go.GetComponent<MeshRenderer>();
-			if (placeholderMaterial != null) mr.sharedMaterial = placeholderMaterial;
-		}
-	}
+	
     
 		// Draw Gizmos to visualize start and end rooms
 		void OnDrawGizmos()
