@@ -34,8 +34,8 @@ namespace Generation
         if (mapGen == null) return;
 
         EnsureRoot();
-        // Optionally clear previous placeholders if regenerating
-        //ClearPlaceholders();
+        // Clear previous placeholders if regenerating
+        ClearPlaceholders();
 
         // Получаем адаптированные параметры генерации
         var generationParams = GetAdaptedGenerationParameters(mapGen);
@@ -137,14 +137,16 @@ namespace Generation
         {
             for (int i = roomsRoot.childCount - 1; i >= 0; i--)
             {
-                DestroyImmediate(roomsRoot.GetChild(i).gameObject);
+                var child = roomsRoot.GetChild(i).gameObject;
+                if (Application.isPlaying) Destroy(child); else DestroyImmediate(child);
             }
         }
         if (corridorsRoot != null)
         {
             for (int i = corridorsRoot.childCount - 1; i >= 0; i--)
             {
-                DestroyImmediate(corridorsRoot.GetChild(i).gameObject);
+                var child = corridorsRoot.GetChild(i).gameObject;
+                if (Application.isPlaying) Destroy(child); else DestroyImmediate(child);
             }
         }
 		rooms.Clear();
