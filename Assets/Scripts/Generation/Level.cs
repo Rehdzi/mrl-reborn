@@ -27,7 +27,7 @@ public class Level : MonoBehaviour
     {
         GenerateLocalDifficulty();
         GenerateEnvironment();
-        mapGenerator.GetComponent<MapGenerator>().GenerateMap();
+        MapGenerator.instance.GenerateMap();
         
     }
     

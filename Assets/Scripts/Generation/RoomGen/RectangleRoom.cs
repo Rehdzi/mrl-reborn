@@ -52,5 +52,32 @@ namespace Generation.RoomGen
             var mr = go.GetComponent<MeshRenderer>();
             if (placeholderMaterial != null) mr.sharedMaterial = placeholderMaterial;
         }
+
+        public void CreateWFCRoom(Transform roomsRoot, float squareSize, int mapTilesWidth, int mapTilesHeight, GameObject floorPrefab, GameObject wallPrefab)
+        {
+            // Parent container
+            var go = new GameObject($"WFCRoom_{rect.x}_{rect.y}");
+            if (roomsRoot != null)
+            {
+                go.transform.SetParent(roomsRoot, false);
+            }
+
+            // Position the room's local origin at the top-left tile center of this rectangle in world space
+            float mapW = mapTilesWidth * squareSize;
+            float mapH = mapTilesHeight * squareSize;
+            float originX = -mapW/2f + rect.x * squareSize;
+            float originZ = -mapH/2f + rect.y * squareSize;
+            go.transform.localPosition = new Vector3(originX, 0f, originZ);
+
+            // Add WFC room component and assign prefabs
+            var wfcRoom = go.AddComponent<WFCRoom>();
+            wfcRoom.floorPrefab = floorPrefab;
+            wfcRoom.wallPrefab = wallPrefab;
+
+            // Generate and render with the rectangle's size in tiles
+            var roomSize = new Vector2Int(rect.width, rect.height);
+            wfcRoom.GenerateRoom(roomSize);
+            wfcRoom.RenderRoom(roomSize);
+        }
     }
 }

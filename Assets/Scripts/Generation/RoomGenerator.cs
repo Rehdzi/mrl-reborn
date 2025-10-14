@@ -18,6 +18,9 @@ namespace Generation
     public int minCorridorGapTiles = 5;
     [SerializeField] public float roomHeight = 5f;
     [SerializeField] public Material placeholderMaterial;
+    [Header("WFC Prefabs")]
+    [SerializeField] public GameObject floorPrefab;
+    [SerializeField] public GameObject wallPrefab;
 
 	readonly List<RectangleRoom> rooms = new();
 	readonly List<Vector2Int> roomCenters = new();
@@ -31,7 +34,7 @@ namespace Generation
         if (mapGen == null) return;
 
         EnsureRoot();
-        ClearPlaceholders();
+        //ClearPlaceholders();
 
         // Получаем адаптированные параметры генерации
         var generationParams = GetAdaptedGenerationParameters(mapGen);
@@ -51,7 +54,13 @@ namespace Generation
 			var room = new RectangleRoom(rect);
 			rooms.Add(room);
 			room.Carve(mapGen);
-			room.CreatePlaceholder(roomsRoot, generationParams.caveSquareSize, generationParams.roomHeight, placeholderMaterial, mapGen.width, mapGen.height);
+            room.CreateWFCRoom(
+                roomsRoot,
+                generationParams.caveSquareSize,
+                mapGen.width,
+                mapGen.height,
+                floorPrefab,
+                wallPrefab);
         }
 
 		// Rebuild centers and lookup map from rooms for corridor generation/trim
@@ -141,26 +150,7 @@ namespace Generation
 		roomCenters.Clear();
 		centerToRect.Clear();
     }
-
-    void CreatePlaceholder(RectInt rect, float squareSize, float height)
-    {
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        go.name = $"Room_{rect.x}_{rect.y}";
-        go.transform.SetParent(roomsRoot, false);
-        float w = rect.width * squareSize;
-        float h = rect.height * squareSize;
-        go.transform.localScale = new Vector3(w, height, h);
-        // Position: convert grid center to local world used by MapGenerator/MeshGenerator (-map/2 offset)
-        var mapGen = MapGenerator.instance;
-        float mapW = mapGen.width * squareSize;
-        float mapH = mapGen.height * squareSize;
-        float cx = -mapW/2f + (rect.x + rect.width/2f) * squareSize;
-        float cz = -mapH/2f + (rect.y + rect.height/2f) * squareSize;
-        go.transform.localPosition = new Vector3(cx, height/2f, cz);
-        var mr = go.GetComponent<MeshRenderer>();
-        if (placeholderMaterial != null) mr.sharedMaterial = placeholderMaterial;
-    }
-
+    
     void CreateCorridorPlaceholder(Vector2Int from, Vector2Int to, float squareSize, float height, int radius)
     {
         var mapGen = MapGenerator.instance;
