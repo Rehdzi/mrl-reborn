@@ -34,6 +34,7 @@ namespace Generation
         if (mapGen == null) return;
 
         EnsureRoot();
+        // Optionally clear previous placeholders if regenerating
         //ClearPlaceholders();
 
         // Получаем адаптированные параметры генерации
@@ -295,31 +296,30 @@ namespace Generation
 
 	
     
-		// Draw Gizmos to visualize start and end rooms
-		void OnDrawGizmos()
-		{
-			if (rooms == null) return;
+        // Draw simple gizmos to visualize start and end rooms
+        void OnDrawGizmos()
+        {
+            if (rooms == null) return;
 
-			foreach (var room in rooms)
-			{
-				if (room.IsStartRoom)
-				{
-					// Green sphere for start room
-					Gizmos.color = Color.green;
-					Vector3 worldPos = GridToWorldPosition(room.Center);
-					Gizmos.DrawWireSphere(worldPos, 2f);
-					Gizmos.DrawSphere(worldPos, 1.5f);
-				}
-				else if (room.IsEndRoom)
-				{
-					// Red sphere for end room
-					Gizmos.color = Color.red;
-					Vector3 worldPos = GridToWorldPosition(room.Center);
-					Gizmos.DrawWireSphere(worldPos, 2f);
-					Gizmos.DrawSphere(worldPos, 1.5f);
-				}
-			}
-		}
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                var room = rooms[i];
+                if (room.IsStartRoom)
+                {
+                    Gizmos.color = Color.green;
+                    Vector3 worldPos = GridToWorldPosition(room.Center);
+                    Gizmos.DrawWireSphere(worldPos, 2f);
+                    Gizmos.DrawSphere(worldPos, 1.5f);
+                }
+                else if (room.IsEndRoom)
+                {
+                    Gizmos.color = Color.red;
+                    Vector3 worldPos = GridToWorldPosition(room.Center);
+                    Gizmos.DrawWireSphere(worldPos, 2f);
+                    Gizmos.DrawSphere(worldPos, 1.5f);
+                }
+            }
+        }
 
 		// Convert grid position to world position for Gizmos
 		Vector3 GridToWorldPosition(Vector2Int gridPos)
@@ -380,57 +380,7 @@ namespace Generation
 			return GridToWorldPosition(startRoom.Center);
 		}
 
-		// Handle mouse clicks for Gizmo interaction
-		void OnDrawGizmosSelected()
-		{
-			// This method is called when the object is selected
-			// We can use this to detect clicks on the end room
-		}
-
-		// Check for mouse clicks on end room Gizmos
-		void Update()
-		{
-			if (Input.GetMouseButtonDown(0)) // Left mouse button
-			{
-				CheckForEndRoomClick();
-			}
-		}
-
-		void CheckForEndRoomClick()
-		{
-			if (rooms == null) return;
-
-			// Get mouse position in world space
-			Camera cam = Camera.main;
-			if (cam == null) return;
-
-			Vector3 mousePos = Input.mousePosition;
-			Ray ray = cam.ScreenPointToRay(mousePos);
-
-			// Check if ray intersects with any end room
-			foreach (var room in rooms)
-			{
-				if (room.IsEndRoom)
-				{
-					Vector3 worldPos = GridToWorldPosition(room.Center);
-					
-					// Simple distance check (you might want to use proper ray-sphere intersection)
-					float distance = Vector3.Distance(ray.origin, worldPos);
-					if (distance < 5f) // Adjust this threshold as needed
-					{
-						// Check if the ray is roughly pointing towards the room
-						Vector3 directionToRoom = (worldPos - ray.origin).normalized;
-						float dot = Vector3.Dot(ray.direction, directionToRoom);
-						
-						if (dot > 0.7f) // Adjust this threshold as needed
-						{
-							TransitionToNextLevel();
-							break;
-						}
-					}
-				}
-			}
-		}
+        // Remove empty editor callbacks and per-frame polling to keep generator lean
 }
 }
 
