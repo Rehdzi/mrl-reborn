@@ -691,8 +691,11 @@ MonoBehaviour:
   placementAttempts: 40
   corridorRadius: 2
   mergeThreshold: 4
+  minCorridorGapTiles: 5
   roomHeight: 5
   placeholderMaterial: {fileID: 2100000, guid: b0e03b6478636441ba435037b93f7724, type: 2}
+  floorPrefab: {fileID: 919132149155446097, guid: 90e5538fcd9284f02b5d38bb38ea0a89, type: 3}
+  wallPrefab: {fileID: 919132149155446097, guid: fbbcdd64ab95c4667a0224040b475cb4, type: 3}
 --- !u!114 &1714171076
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -821,7 +824,7 @@ Transform:
   m_GameObject: {fileID: 1823688464}
   serializedVersion: 2
   m_LocalRotation: {x: 0.35355338, y: 0.35355338, z: -0.1464466, w: 0.8535535}
-  m_LocalPosition: {x: -55, y: 18, z: -55}
+  m_LocalPosition: {x: -55, y: 10, z: -55}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

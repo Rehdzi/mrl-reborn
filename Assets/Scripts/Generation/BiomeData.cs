@@ -21,7 +21,7 @@ namespace Generation
         public float humidityTolerance = 15f;
         
         [Header("Ресурсы")]
-        public Entity[] entities;
+        public GameEntity[] entities;
         public Material[] materials;
         
         /// <summary>
