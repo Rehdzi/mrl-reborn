@@ -53,33 +53,34 @@ namespace Generation.RoomGen
 						floorMesh.transform.localPosition = new Vector3(room.RoomPosition.x, floor.FloorNumber, room.RoomPosition.y);
 						floorMesh.transform.localRotation = Quaternion.identity;
                         
+                        // TODO: Revert rotations on new models
                         // Создаем стены только по границам комнаты
                         if (y == sizeY - 1) // Верхняя стена (Z+)
                         {
 							var wall1 = Instantiate(wallPrefab, transform);
-							wall1.transform.localPosition = new Vector3(room.RoomPosition.x, floor.FloorNumber + half, room.RoomPosition.y + half);
-							wall1.transform.localRotation = Quaternion.Euler(0, 0, 0);
+							wall1.transform.localPosition = new Vector3(room.RoomPosition.x, floor.FloorNumber, room.RoomPosition.y + half);
+							wall1.transform.localRotation = Quaternion.Euler(0, -90, 0);
                         }
                         
                         if (x == sizeX - 1) // Правая стена (X+)
                         {
 							var wall2 = Instantiate(wallPrefab, transform);
-							wall2.transform.localPosition = new Vector3(room.RoomPosition.x + half, floor.FloorNumber + half, room.RoomPosition.y);
-							wall2.transform.localRotation = Quaternion.Euler(0, 90, 0);
+							wall2.transform.localPosition = new Vector3(room.RoomPosition.x + half, floor.FloorNumber, room.RoomPosition.y);
+							wall2.transform.localRotation = Quaternion.Euler(0, 0, 0);
                         }
                         
                         if (y == 0) // Нижняя стена (Z-)
                         {
 							var wall3 = Instantiate(wallPrefab, transform);
-							wall3.transform.localPosition = new Vector3(room.RoomPosition.x, floor.FloorNumber + half, room.RoomPosition.y - half);
-							wall3.transform.localRotation = Quaternion.Euler(0, 180, 0);
+							wall3.transform.localPosition = new Vector3(room.RoomPosition.x, floor.FloorNumber, room.RoomPosition.y - half);
+							wall3.transform.localRotation = Quaternion.Euler(0, 90, 0);
                         }
                         
                         if (x == 0) // Левая стена (X-)
                         {
 							var wall4 = Instantiate(wallPrefab, transform);
-							wall4.transform.localPosition = new Vector3(room.RoomPosition.x - half, floor.FloorNumber + half, room.RoomPosition.y);
-							wall4.transform.localRotation = Quaternion.Euler(0, -90, 0);
+							wall4.transform.localPosition = new Vector3(room.RoomPosition.x - half, floor.FloorNumber, room.RoomPosition.y);
+							wall4.transform.localRotation = Quaternion.Euler(0, -180, 0);
                         }
                     }
                 }
