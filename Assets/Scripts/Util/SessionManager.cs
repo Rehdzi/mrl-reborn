@@ -203,7 +203,7 @@ public class SessionManager : MonoBehaviour
         }
 
         // Move camera to start room with a slight offset for better viewing
-        Vector3 cameraPosition = startRoomPosition + new Vector3(-10, 11, -10); // Offset for better viewing angle
+        Vector3 cameraPosition = startRoomPosition + new Vector3(-6, 3, -6); // Offset for better viewing angle
         cam.transform.position = cameraPosition;
         cam.transform.rotation = Quaternion.Euler(45, 45, 0);
         
