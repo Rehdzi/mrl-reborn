@@ -11,6 +11,7 @@ namespace Entities
         Camera cam;
         NavMeshAgent agent;
         public LayerMask ground;
+
         
         
         private InputActionMap actionMap;

@@ -12,6 +12,9 @@ namespace Entities
         public List<GameObject> stack = new List<GameObject>();
         public List<GameObject> selected = new List<GameObject>();
 		
+        public GameObject groundMarker;
+        
+        public LayerMask ground;
 		public LayerMask selectable;
 		private InputActionMap actionMap;
 		Camera cam;
@@ -63,6 +66,20 @@ namespace Entities
 		        Debug.Log("Switch");
 		        throw new NotImplementedException();
 	        }
+	        
+	        if (actionMap.FindAction("Move").WasPerformedThisFrame() && selected.Count > 0)
+	        {
+		        RaycastHit hit;
+		        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+
+		        if (Physics.Raycast(ray, out hit, Mathf.Infinity, ground))
+		        {
+			        groundMarker.transform.position = new Vector3(hit.point.x, hit.point.y + 0.1f, hit.point.z);
+			        
+			        groundMarker.SetActive(false);
+			        groundMarker.SetActive(true);
+		        }
+	        }
         }
 
         private void MultiSelect(GameObject go)
@@ -99,6 +116,8 @@ namespace Entities
 	        {
 		        EnableEntityMovement(go, false);
 	        }
+	        
+	        groundMarker.SetActive(false);
 	        
 	        selected.Clear();
         }
