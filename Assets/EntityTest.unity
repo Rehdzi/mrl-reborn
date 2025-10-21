@@ -409,6 +409,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Entities.StackManager
   stack: []
   selected: []
+  selectable:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!4 &1156462009
 Transform:
   m_ObjectHideFlags: 0

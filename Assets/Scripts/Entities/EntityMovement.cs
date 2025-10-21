@@ -11,10 +11,10 @@ namespace Entities
         Camera cam;
         NavMeshAgent agent;
         public LayerMask ground;
-        public LayerMask selectable;
+        
         
         private InputActionMap actionMap;
-        private List<GameObject> selectedUnits;
+        
         
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -23,7 +23,6 @@ namespace Entities
             
             cam = Camera.main;
             agent = GetComponent<NavMeshAgent>();
-            selectedUnits = StackManager.Instance.stack;
         }
 
         // Update is called once per frame
@@ -40,33 +39,7 @@ namespace Entities
                 }
             }
             
-            if (actionMap.FindAction("Select").WasPerformedThisFrame())
-            {
-                RaycastHit hit;
-                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-
-                if (Physics.Raycast(ray, out hit, Mathf.Infinity, selectable))
-                {
-                    SelectByClick(hit.collider.gameObject);
-                }
-            }
-
-            if (actionMap.FindAction("Switch").WasPerformedThisFrame())
-            {
-				StackManager.Instance?.CycleSelected(1);
-            }
-        }
-        
-        void SelectByClick(GameObject go)
-        {
-            DeselectAll();
             
-            selectedUnits.Add(go);
-        }
-        
-        void DeselectAll()
-        {
-            selectedUnits.Clear();
         }
     }
 }

@@ -728,6 +728,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Modifier",
+                    "type": "Button",
+                    "id": "672c8a50-cb77-4526-a28f-c011da3d1025",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -761,6 +770,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8a5b3f4a-892e-40b5-bfa2-16c80beeda0d",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Modifier",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
