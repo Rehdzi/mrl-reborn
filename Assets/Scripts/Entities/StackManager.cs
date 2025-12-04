@@ -16,10 +16,16 @@ namespace Entities
         
         public LayerMask ground;
 		public LayerMask selectable;
+		[SerializeField] public LayerMask attackable;
+		
 		private InputActionMap actionMap;
 		Camera cam;
-        
-        private void Awake()
+		
+		
+		[SerializeField] private bool attackCursorVisible;
+		
+
+		private void Awake()
         {
             if (Instance != null && Instance != this)
             {
@@ -80,6 +86,48 @@ namespace Entities
 			        groundMarker.SetActive(true);
 		        }
 	        }
+	        
+	        if (selected.Count > 0 && atleastOneOffensiveUnit(selected))
+	        {
+		        RaycastHit hit;
+		        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+
+		        if (Physics.Raycast(ray, out hit, Mathf.Infinity, attackable))
+		        {
+			        Debug.Log("Enemy hovered with mouse");
+			        attackCursorVisible = true;
+
+			        if (actionMap.FindAction("Move").WasPerformedThisFrame())
+			        {
+				        Transform target = hit.transform;
+
+				        foreach (GameObject entity in selected)
+				        {
+					        if (entity.GetComponent<AttackController>())
+					        {
+						        entity.GetComponent<AttackController>().targetToAttack =  target;
+					        }
+				        }
+			        }
+			        
+		        }
+	        }
+	        else
+	        {
+		        attackCursorVisible =  false;
+	        }
+        }
+
+        private bool atleastOneOffensiveUnit(List<GameObject> selected)
+        {
+	        foreach (GameObject entity in selected)
+	        {
+		        if (entity.GetComponent<AttackController>())
+		        {
+			        return true;
+		        }
+	        }
+	        return false;
         }
 
         private void MultiSelect(GameObject go)
