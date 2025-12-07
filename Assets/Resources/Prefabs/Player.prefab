@@ -268,8 +268,10 @@ GameObject:
   - component: {fileID: 5513473809200144268}
   - component: {fileID: 1518308529199268188}
   - component: {fileID: 1865118476728600667}
+  - component: {fileID: 2496872533802149394}
   - component: {fileID: 36686939829599976}
   - component: {fileID: 6588547700526311559}
+  - component: {fileID: 2359960145131795830}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -307,7 +309,7 @@ NavMeshAgent:
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 0
+  m_StoppingDistance: 0.2
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
@@ -330,6 +332,19 @@ MonoBehaviour:
   ground:
     serializedVersion: 2
     m_Bits: 8
+--- !u!114 &2496872533802149394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7822136396438359186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 389d8053cfe1645b3ab757cd1cd9facb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttackController
+  targetToAttack: {fileID: 0}
 --- !u!114 &36686939829599976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -368,3 +383,25 @@ CapsuleCollider:
   m_Height: 2.8478081
   m_Direction: 1
   m_Center: {x: 0, y: 0.92390406, z: 0}
+--- !u!95 &2359960145131795830
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7822136396438359186}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 5ae2fdbe2ed2443fbb429fac766eb3cb, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

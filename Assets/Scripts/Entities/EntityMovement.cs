@@ -12,7 +12,7 @@ namespace Entities
         NavMeshAgent agent;
         public LayerMask ground;
 
-        
+        public bool isCommandedToMove;
         
         private InputActionMap actionMap;
         
@@ -36,11 +36,15 @@ namespace Entities
 
                 if (Physics.Raycast(ray, out hit, Mathf.Infinity, ground))
                 {
+                    isCommandedToMove = true;
                     agent.SetDestination(hit.point);
                 }
             }
-            
-            
+
+            if (agent.hasPath == false || agent.remainingDistance <= agent.stoppingDistance)
+            {
+                isCommandedToMove = false;
+            }
         }
     }
 }
