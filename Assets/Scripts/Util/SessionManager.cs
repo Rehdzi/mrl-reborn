@@ -179,7 +179,7 @@ public class SessionManager : MonoBehaviour
     void MoveCameraToStartRoom()
     {
         // Find RoomGenerator in the scene
-        var roomGenerator = FindObjectOfType<Generation.RoomGenerator>();
+        var roomGenerator = FindFirstObjectByType<Generation.RoomGenerator>();
         if (roomGenerator == null)
         {
             Debug.LogWarning("RoomGenerator not found. Cannot move camera to start room.");
